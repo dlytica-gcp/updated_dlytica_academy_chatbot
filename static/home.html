@@ -1,0 +1,44 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<!-- <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head> -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Add DOMPurify for security -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+</head>
+
+<body>
+
+<!-- Floating Button -->
+<div id="chatbot-button">
+    <img src="/static/dlytica_logo.jpg" alt="Chatbot" />
+</div>
+
+<!-- Popup Chatbox -->
+<div id="chat-popup">
+    <div id="chat-header">
+        Dlytica Academy Bot
+        <span id="close-chat">&times;</span>
+    </div>
+    <div id="chat-body">
+        <div id="messages"></div>
+    </div>
+    <div id="chat-input">
+        <button id="voice-btn" title="Speak">🎙️</button>
+        <input type="text" id="user-input" placeholder="Type your message..." />
+        <button id="send-btn">Send</button>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

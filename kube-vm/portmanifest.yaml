@@ -1,0 +1,189 @@
+# Namespace Definition
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dlytica-chatbot
+
+---
+
+# Secret for FastAPI Environment Variables
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fastapi-environment-secrets
+  namespace: dlytica-chatbot
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "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"
+  DB_ENGINE: "django.db.backends.postgresql"
+  DB_NAME: "dn_ai360_db"
+  DB_USER: "postgres"
+  DB_PASSWORD: "postgres"
+  DB_HOST: "dlytica-kube-vm.eastus.cloudapp.azure.com"
+  DB_PORT: "30147"
+
+---
+
+# InferenceService for Chatbot
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: dlytica-chatbot-ui
+  namespace: dlytica-chatbot
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 5
+    containerConcurrency: 10
+    containers:
+      - name: dlytica-chatbot-container
+        image: quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v10
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8000
+        env:
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: OPENAI_API_KEY
+          - name: DB_ENGINE
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_ENGINE
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_NAME
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_PASSWORD
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_HOST
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: fastapi-environment-secrets
+                key: DB_PORT
+        resources:
+          requests:
+            cpu: "500m" 
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          timeoutSeconds: 5
+    imagePullSecrets:
+      - name: quay-secret
+
+---
+
+# NodePort Service for external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlytica-chatbot-nodeport
+  namespace: dlytica-chatbot
+spec:
+  selector:
+    serving.kserve.io/inferenceservice: dlytica-chatbot-ui
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8000
+      nodePort: 32014
+
+---
+
+# Minio External Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: dlytica-chatbot
+spec:
+  type: ExternalName
+  externalName: dlytica-kube-vm.eastus.cloudapp.azure.com
+  ports:
+    - port: 32000
+      targetPort: 32000
+
+---
+
+# Ingress Configuration - Using Production Issuer
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dlytica-chatbot-ingress
+  namespace: dlytica-chatbot
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/issue-temporary-certificate: "true"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "256k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "256k"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "600"
+    nginx.ingress.kubernetes.io/keep-alive: "75"
+    nginx.ingress.kubernetes.io/keep-alive-requests: "100"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - dlytica.academy.chatbot.data-nature.dlytica.com
+    secretName: dlytica-chatbot-tls-cert
+  rules:
+  - host: dlytica.academy.chatbot.data-nature.dlytica.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dlytica-chatbot-nodeport
+            port:
+              number: 80

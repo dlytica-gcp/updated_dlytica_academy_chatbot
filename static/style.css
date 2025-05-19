@@ -1,0 +1,288 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #e9eff6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Floating Chatbot Button */
+#chatbot-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 65px;
+    height: 65px;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+#chatbot-button img {
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#chatbot-button:hover {
+    transform: scale(1.1);
+}
+
+/* Chatbot Popup */
+#chat-popup {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 480px; /* Increased Width */
+    max-width: 95%;
+    height: 590px; /* Increased Initial Height */
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+    border: 2px solid #6a32d6;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-in-out;
+}
+
+/* Chat Header */
+#chat-header {
+    background: #6a32d6;
+    color: white;
+    padding: 18px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#close-chat {
+    cursor: pointer;
+    font-size: 22px;
+    padding: 0 15px;
+    color: white;
+    z-index: 100;
+    user-select: none;
+}
+
+#close-chat:hover {
+    color: #ff4d4d;
+}
+
+/* Chat Body */
+#chat-body {
+    flex: 1;
+    max-height: 460px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f7f7f7;
+}
+
+/* Chat Messages */
+#messages {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+/* Bot & User Messages */
+.message {
+    margin: 10px;
+    padding: 14px;
+    border-radius: 15px;
+    max-width: 85%;
+    font-size: 18px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+}
+
+.bot {
+    align-self: flex-start;
+    background: #f0f0f0;
+    color: black;
+    padding: 14px;
+    border-radius: 10px 10px 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.bot img {
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+}
+
+.user {
+    align-self: flex-end;
+    background: #6a32d6;
+    color: white;
+    padding: 14px;
+    border-radius: 10px 10px 0 10px;
+}
+
+/* Chat Input Section (Now Fixed at Bottom, With No Overlap) */
+/* Chat Input Section (Fixed Layout) */
+#chat-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #ffffff;
+    border-top: 1px solid #ddd;
+    justify-content: space-between;
+}
+
+
+/* Text Input (Centered) */
+#user-input {
+    flex-grow: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    background: #f4f4f4;
+    color: #333;
+}
+
+
+
+/* Send Button (Right Side) */
+#send-btn {
+    background: #6a32d6;
+    border: none;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    margin-left: 10px; /* Ensure spacing between input field */
+}
+
+#send-btn:hover {
+    background-color: #5723b3;
+}
+
+/* Scrollbar Customization */
+#chat-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-body::-webkit-scrollbar-thumb {
+    background: #6a32d6;
+    border-radius: 6px;
+}
+
+#chat-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Chat Pop-up Animation */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Microphone Button */
+/* Voice Input (Left Side) */
+#voice-btn {
+    background:#F5F5F5;
+    border: none;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    margin-right: 10px; /* Ensure spacing between input field */
+}
+
+#voice-btn:hover {
+    background-color: #C1C6CC;
+}
+
+
+/* bot typing animation */
+
+.typing {
+    align-self: flex-start;
+    background: #f0f0f0;
+    color: black;
+    padding: 14px;
+    border-radius: 10px 10px 10px 0;
+    display: flex;
+    align-items: center;
+    font-style: italic;
+}
+
+.typing img {
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+}
+
+.typing span {
+    font-style: italic;
+    color: #555;
+}
+
+.dot {
+    animation: blink 1s infinite;
+}
+
+.dot.one { animation-delay: 0s; }
+.dot.two { animation-delay: 0.2s; }
+.dot.three { animation-delay: 0.4s; }
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+
+/* Add to your style.css */
+.message-content a {
+    color: #1a73e8;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.message-content a:hover {
+    text-decoration: none;
+}
+
+.map-link {
+    font-weight: bold;
+    color: #1a73e8 !important;
+}
+
+.message-content {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}

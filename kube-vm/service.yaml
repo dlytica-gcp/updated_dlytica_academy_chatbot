@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: kubeflow-user-example-com
+spec:
+  type: ExternalName
+  externalName: dlytica-kube-vm.eastus.cloudapp.azure.com
+  ports:
+    - port: 32000
+      targetPort: 32000

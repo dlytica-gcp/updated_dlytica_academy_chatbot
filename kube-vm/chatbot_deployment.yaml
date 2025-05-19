@@ -1,0 +1,204 @@
+# Namespace Definition
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: dn-academy-chatbot
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: dn-academy-chatbot
+  labels:
+    app: postgres
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: quay.io/datanature_dev/postgres:12   
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: academy-chatbot-postgres  # Replace with your preferred username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: academy_bot # Password will be in a secret called "postgres-secret"
+        - name: POSTGRES_DB
+          value: chatbot_db  # Replace with the database name you want to create
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: dn-academy-chatbot 
+spec:
+  type: NodePort
+  ports:
+  - port: 5432
+    targetPort: 5432
+    nodePort: 30147
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: dn-academy-chatbot  
+type: Opaque
+stringData:
+  academy_bot: postgres_bot # password for the confriguation of the username
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: dn-academy-chatbot  
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+--- 
+# Secret for FastAPI Environment Variables
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fastapi-environment-secrets
+  namespace: dn-academy-chatbot
+type: Opaque
+stringData:
+  OPENAI_BASE_URL: https://Meta-Llama-3-8B-Instruct-rvejq-serverless.eastus2.inference.ai.azure.com/v1/
+  OPENAI_API_KEY: bH8vNoPPMdeiR1oh4NNgFqrQGLUVRN8D
+  DB_ENGINE: "django.db.backends.postgresql"
+  DB_NAME: "chatbot_db"
+  DB_USER: "academy-chatbot-postgres"
+  DB_PASSWORD: "postgres_bot"
+  # DB_HOST: "dlytica-kube-vm.eastus.cloudapp.azure.com"
+  # DB_PORT: "30148"
+  DB_HOST: "postgres-service.dn-academy-chatbot.svc.cluster.local"
+  DB_PORT: "5432"
+---
+ 
+# Deployment for FastAPI Chatbot
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dlytica-chatbot-ui
+  namespace: dn-academy-chatbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dlytica-chatbot-ui
+  template:
+    metadata:
+      labels:
+        app: dlytica-chatbot-ui
+    spec:
+      containers:
+      - name: fastapi-container
+        image: quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v50
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: fastapi-environment-secrets
+    # Define resource limits and requests
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+        # Add liveness and readiness probes
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health  # Replace with your FastAPI health check endpoint
+        #     port: 8000
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health  # Replace with your FastAPI health check endpoint
+        #     port: 8000
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        # Optional: Enable debug logging
+        env:
+        - name: LOG_LEVEL
+          value: "DEBUG"
+      imagePullSecrets:
+        - name: quay-secret
+---
+ 
+# Service for FastAPI Chatbot
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlytica-chatbot-service
+  namespace: dn-academy-chatbot
+spec:
+  selector:
+    app: dlytica-chatbot-ui
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8000
+      nodePort: 31270
+---
+ 
+# Ingress for External Access with TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dlytica-chatbot-ingress
+  namespace: dn-academy-chatbot
+  annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/issue-temporary-certificate: "true"
+      acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - chatbotv3.data-nature.dlytica.com
+      secretName: dlytica-chatbot-tls-certificate1
+  rules:
+    - host: chatbotv3.data-nature.dlytica.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dlytica-chatbot-service
+                port:
+                  number: 80
+ 

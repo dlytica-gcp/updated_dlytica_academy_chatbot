@@ -1,0 +1,150 @@
+# -------------------------------------------------------------------------------------------------------------
+
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import OpenAI  # Updated import
+from langchain.memory import ConversationBufferMemory
+from chatbot.document_loader import load_documents
+from chatbot.rag_system import create_vector_store, setup_rag_chain
+from chatbot.user_info import UserInfoCollector
+from chatbot.tools.date_tool import DateExtractionTool
+from chatbot.tools.booking_tool import AppointmentBookingTool
+from chatbot.agent import setup_agent
+from sqlalchemy.orm import Session
+from model import ConversationHistory, SessionLocal
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# FastAPI instance
+app = FastAPI()
+
+# Function to get database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Path to your document
+document_path = "./docs/Frequently Asked Questions.pdf"  
+
+# Create a conversation chatbot class
+class DocumentChatbot:
+    def __init__(self, document_path, db: Session):
+        self.llm = OpenAI(temperature=0.7, openai_api_key=os.getenv("OPENAI_API_KEY"))
+        documents = load_documents(document_path)
+        vector_store = create_vector_store(documents)
+        self.qa_chain = setup_rag_chain(vector_store, self.llm)
+
+        # Tools and agent setup
+        self.user_info_collector = UserInfoCollector(self.llm)
+        self.date_tool = DateExtractionTool()
+        self.booking_tool = AppointmentBookingTool(self.user_info_collector, self.date_tool)
+        self.tools = setup_agent(self.llm, self.user_info_collector, self.date_tool, self.booking_tool)
+        self.memory = ConversationBufferMemory(return_messages=True)
+        self.db = db  # Store the DB session
+        
+    def process_message(self, user_message):
+        user_message_lower = user_message.lower()
+
+        # Collecting user info
+        if self.user_info_collector.is_collecting():
+            return self.user_info_collector.process_input(user_message)
+
+        # Trigger info collection
+        if "call me" in user_message_lower or "contact me" in user_message_lower:
+            return self.user_info_collector.start_collection()
+
+        # Trigger appointment booking
+        if any(kw in user_message_lower for kw in ["book", "schedule", "appointment", "meeting"]):
+            date_str = self.date_tool.extract_date(user_message)
+            if date_str:
+                try:
+                    response = self.booking_tool.book_appointment(user_message)
+                    return response
+                except Exception as e:
+                    return f"Error during appointment booking: {e}"
+            else:
+                # Skip this message and directly ask for name
+                return self.user_info_collector.start_collection()
+
+        # Fallback to document Q&A
+        try:
+            response = self.qa_chain({"query": user_message})
+            # Save the conversation to the database
+            self.save_conversation(user_message, response["result"])
+            return response["result"]
+        except Exception as e:
+            return f"I'm sorry, I encountered an error while answering: {str(e)}"
+
+    def save_conversation(self, user_message: str, bot_response: str):
+        """Save the conversation in the database."""
+        conversation = ConversationHistory(user_message=user_message, bot_response=bot_response)
+        self.db.add(conversation)
+        self.db.commit()
+
+# API Model to handle user input and return chatbot response
+class UserInput(BaseModel):
+    message: str
+
+@app.post("/chat/")
+async def chat(input_data: UserInput, db: Session = Depends(get_db)):
+    try:
+        # Initialize the chatbot with the provided document and the DB session
+        chatbot = DocumentChatbot(document_path, db)
+
+        # Get the user message from the input data
+        user_message = input_data.message
+        
+        # Process the message using the chatbot
+        response = chatbot.process_message(user_message)
+
+        # Return the response back to the user
+        return JSONResponse(content={"response": response})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Handle GET request to /chat/ and redirect
+@app.get("/chat/")
+async def chat_info():
+    return JSONResponse(
+        content={
+            "message": "Please use POST method at /chat/ endpoint with a 'message' field to interact with the chatbot.",
+            "example_request": {
+                "method": "POST",
+                "url": "/chat/",
+                "body": {"message": "Your question here"}
+            }
+        }
+    )
+
+# Homepage endpoint to test the API is working
+@app.get("/")
+async def read_root():
+    return JSONResponse(
+        content={
+            "message": "Welcome to the Dlytica Document Chatbot API.",
+            "endpoints": {
+                "/chat/": {
+                    "description": "Interact with the chatbot",
+                    "methods": {
+                        "POST": "Send a message to the chatbot",
+                        "GET": "Get usage instructions"
+                    }
+                }
+            }
+        }
+    )
+
+# Add exception handler
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail}
+    )

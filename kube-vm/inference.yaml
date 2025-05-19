@@ -1,0 +1,56 @@
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: dlytica-chatbot-ui
+  namespace: kubeflow-user-example-com
+spec:
+  predictor:
+    serviceAccountName: sa
+    minReplicas: 2
+    maxReplicas: 5
+    containerConcurrency: 10
+    containers:
+      - name: dlytica-chatbot-container
+        image: quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v10
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8000
+        env:
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openai-secret
+                key: OPENAI_API_KEY
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+    imagePullSecrets:
+      - name: quay-secret
