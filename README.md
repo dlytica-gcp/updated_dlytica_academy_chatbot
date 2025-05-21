@@ -18,7 +18,7 @@ An AI-powered assistant built using **FastAPI**, **LangChain**, **LLMs**, and **
 
 ## 🗂️ Project Structure
 
-
+```bash
 dlytica-chatbot/
 ├── app.py                   # FastAPI main entrypoint
 ├── chatbot/
@@ -38,7 +38,7 @@ dlytica-chatbot/
 ├── Dockerfile               # Containerization script
 ├── README.md                # Project documentation
 └── .env.example             # Sample environment variables
-
+```
 
 ---
 
