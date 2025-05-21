@@ -34,6 +34,9 @@ dlytica-chatbot/
 │   ├── chat.html            # Frontend interface
 │   ├── style.css            # Styling for the chatbot
 │   └── script.js            # Frontend behavior
+├── kube-vm/
+│   ├── chtabot_deployment.yaml # deploying the app to vm with ingress
+│   ├── other yaml files        # There are other yaml files as well
 ├── requirements.txt         # Python dependencies
 ├── Dockerfile               # Containerization script
 ├── README.md                # Project documentation
