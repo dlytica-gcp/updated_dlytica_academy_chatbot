@@ -6,13 +6,13 @@ An AI-powered assistant built using **FastAPI**, **LangChain**, **LLMs**, and **
 
 ## 🧰 Features
 
-- ✅ FastAPI backend with modular architecture
-- ✅ Retrieval-Augmented Generation (RAG) using ChromaDB
-- ✅ LangChain agents and tools for user info and booking
-- ✅ PostgreSQL for session and metadata storage
-- ✅ Voice input support (SpeechRecognition API)
-- ✅ Secure, responsive frontend (HTML, CSS, JS)
-- ✅ Containerized via Docker and deployed to Kubernetes
+-  FastAPI backend with modular architecture
+-  Retrieval-Augmented Generation (RAG) using ChromaDB
+-  LangChain agents and tools for user info and booking
+-  PostgreSQL for session and metadata storage
+-  Voice input support (SpeechRecognition API)
+-  Secure, responsive frontend (HTML, CSS, JS)
+-  Containerized via Docker and deployed to Kubernetes
 
 ---
 
