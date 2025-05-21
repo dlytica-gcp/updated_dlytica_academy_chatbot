@@ -37,7 +37,7 @@ dlytica-chatbot/
 ├── requirements.txt         # Python dependencies
 ├── Dockerfile               # Containerization script
 ├── README.md                # Project documentation
-└── .env.example             # Sample environment variables
+└── .env                     # Sample environment variables
 ```
 
 ---
