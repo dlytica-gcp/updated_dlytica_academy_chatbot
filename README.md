@@ -18,25 +18,26 @@ An AI-powered assistant built using **FastAPI**, **LangChain**, **LLMs**, and **
 
 ## 🗂️ Project Structure
 
+
 dlytica-chatbot/
-├── app.py # FastAPI main entrypoint
+├── app.py                   # FastAPI main entrypoint
 ├── chatbot/
-│ ├── agent.py # LangChain agents & tools
-│ ├── database.py # PostgreSQL DB connection
-│ ├── document_loader.py # Document loader and parser
-│ ├── rag_system.py # RAG + ChromaDB logic
-│ ├── user_info.py # User info collection system
-│ └── tools/
-│ ├── booking_tool.py # Appointment booking logic
-│ └── date_tool.py # Natural language date parser
+│   ├── agent.py             # LangChain agents & tools
+│   ├── database.py          # PostgreSQL DB connection
+│   ├── document_loader.py   # Document loader and parser
+│   ├── rag_system.py        # RAG + ChromaDB logic
+│   ├── user_info.py         # User info collection system
+│   └── tools/
+│       ├── booking_tool.py  # Appointment booking logic
+│       └── date_tool.py     # Natural language date parser
 ├── static/
-│ ├── chat.html # Frontend interface
-│ ├── style.css # Styling for the chatbot
-│ └── script.js # Frontend behavior
-├── requirements.txt # Python dependencies
-├── Dockerfile # Containerization script
-├── README.md # Project documentation
-└── .env.example # Sample environment variables
+│   ├── chat.html            # Frontend interface
+│   ├── style.css            # Styling for the chatbot
+│   └── script.js            # Frontend behavior
+├── requirements.txt         # Python dependencies
+├── Dockerfile               # Containerization script
+├── README.md                # Project documentation
+└── .env.example             # Sample environment variables
 
 
 ---
