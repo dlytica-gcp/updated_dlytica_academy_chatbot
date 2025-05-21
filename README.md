@@ -48,6 +48,7 @@ dlytica-chatbot/
 ```bash
 git clone https://github.com/<your-org>/dlytica-chatbot.git
 cd dlytica-chatbot
+```
 
 ### 2. Creating a virutal environment
 
@@ -55,10 +56,39 @@ cd dlytica-chatbot
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-
+```
 ### 3. Install Dependencies
 
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
+###  Environment Variables
+
+```bash
+Create a .env file (or use Kubernetes secrets in production). 
+
+OPENAI_BASE_URL=https://your-openai-base-url/
+OPENAI_API_KEY=your-openai-key
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=chatbot_db
+DB_USER=academy-chatbot-postgres
+DB_PASSWORD=postgres_bot
+DB_HOST=postgres-service.dn-academy-chatbot.svc.cluster.local 
+DB_HOST=dlytica-kube-vm.eastus.cloudapp.azure.com
+DB_PORT=30148
+```
+
+### Running the Application Locally
+
+```bash
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+###  Docker Build & Push
+
+```bash
+docker build -t quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v50 .
+docker push quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v50
+```
