@@ -47,7 +47,7 @@ dlytica-chatbot/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-org>/dlytica-chatbot.git
+git clone https://github.com/dlytica-gcp/updated_dlytica_academy_chatbot.git
 cd dlytica-chatbot
 ```
 
