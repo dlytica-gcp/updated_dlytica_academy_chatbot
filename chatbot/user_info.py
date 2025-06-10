@@ -364,7 +364,7 @@ class UserInfoCollector:
                             f"{existing_appointment['date']} at {existing_appointment['time']}. "
                             "If you'd like to book a new appointment, please cancel the previous booking first.")
                 self.current_field = "date"
-                return "Thanks! When would you like to schedule the appointment?"
+                return "Thanks!In which data would you like to schedule the appointment?"
             else:
                 return "Please enter a valid email address."
 
@@ -411,7 +411,7 @@ class UserInfoCollector:
                         self.user_info["created_at"] = datetime.now()
                         self.user_info["status"] = "confirmed"
                         self.current_field = None
-
+ 
                         # Save to database
                         session_id = self._get_current_session_id()
                         if not session_id:

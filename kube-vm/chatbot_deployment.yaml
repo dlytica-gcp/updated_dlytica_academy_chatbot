@@ -117,7 +117,7 @@ spec:
     spec:
       containers:
       - name: fastapi-container
-        image: quay.io/datanature_dev/jupyternotebook:dlytica-chatbot-v50
+        image: quay.io/datanature_dev/chatbot/academy_bot:academy_chatbot_4
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

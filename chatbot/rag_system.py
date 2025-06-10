@@ -98,7 +98,7 @@ def setup_rag_chain(vector_store: Chroma, llm: Any) -> RetrievalQA:
         7. Use natural language transitions rather than numbered points or bullet points when possible.
         8. For questions about enrollment, courses, or programs, provide any relevant details from the context.
         9. If the question is about Dlytica Academy but not covered in the context, you can acknowledge that it's about Dlytica but explain you don't have that specific information.
-
+        10. If a location map is available in the context, return it as a clickable link in the response so the user can directly access the map.
         Your response:
         """
                 

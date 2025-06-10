@@ -68,6 +68,7 @@ class DocumentChatbot:
             model="gpt-3.5-turbo",
             temperature=0.7,
             openai_api_key=os.getenv("OPENAI_API_KEY"),
+        
             max_tokens=512,
             streaming=False,
             request_timeout=30
@@ -78,7 +79,7 @@ class DocumentChatbot:
             model_name="sentence-transformers/all-MiniLM-L6-v2",
             model_kwargs={'device': 'cpu'}
         )
-    
+
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def verify_llm_connection(self):
         try:
@@ -213,7 +214,11 @@ class DocumentChatbot:
             self.clean_old_sessions()
 
             user_message_lower = user_message.lower()
-
+            
+            if any(kw in user_message_lower for kw in ["two appointment", "two appointments", "two bookings", "two bookings", "two booking", "two booking"]):
+                response = "Sorry, we can only book one appointment at a time. Please cancel the current appointment if you'd like to book a new one."
+                return response
+            
             # Reset session triggers
             if any(kw in user_message_lower for kw in ["reset", "start over", "begin again", "new session"]):
                 response = self.reset_session(session_id)

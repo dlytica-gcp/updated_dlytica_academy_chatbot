@@ -17,6 +17,12 @@ class Database:
     def _initialize_pool(self):
         """Initialize the connection pool"""
         try:
+            dbname=os.getenv("P_DB_NAME"),
+            user=os.getenv("P_DB_USER"),
+            password=os.getenv("P_DB_PASSWORD"),
+            host=os.getenv("P_DB_HOST"),
+            port=os.getenv("P_DB_PORT")
+            print(dbname, user, host, port, password)
             self.connection_pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=1,
                 maxconn=10,
@@ -24,14 +30,13 @@ class Database:
                 user=os.getenv("DB_USER"),
                 password=os.getenv("DB_PASSWORD"),
                 host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT")
+                port=os.getenv("DB_PORT"),
+                # dbname="chatbot_db",
+                # user="academy-chatbot-postgres",
+                # password="postgres_bot",
+                # host="127.0.0.1",
+                # port="5432"
             )
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT")
-            print(dbname, user, host, port, password)
             
         except Exception as e:
             print(f"Error creating connection pool: {e}")
